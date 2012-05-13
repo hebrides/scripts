@@ -48,15 +48,13 @@ INPUTFILE=$1
 
 for LINK in $(cat $INPUTFILE)
     do
-    temp1=${LINK/download.php/}
-    temp=${temp1/file\//\?}
-    RESULT=$(curl $temp | tr "\'" "\n" | grep -E 'http://([0-9]{1,3}\.){3}([0-9]{1,3})')
+    RESULT=$(curl -L $LINK | tr "\'" "\n" | egrep 'http://([0-9]{1,3}\.){3}([0-9]{1,3})')
     if [ -z "$RESULT" ]
     then
-      echo "$temp is password protected"
+      echo "$LINK is password protected"
       echo "Please enter password:"
       read password
-      RESULT1=$(curl -d "downloadp=$password" $temp | tr "\"" "\n" | grep -E 'http://([0-9]{1,3}\.){3}([0-9]{1,3})')
+      RESULT1=$(curl -L -d "downloadp=$password" $LINK | tr "\'" "\n" | egrep 'http://([0-9]{1,3}\.){3}([0-9]{1,3})')
       if $WGET_INSTALLED; then
         wget -b --quiet $RESULT1
       else
@@ -64,7 +62,6 @@ for LINK in $(cat $INPUTFILE)
       fi
     else
       if $WGET_INSTALLED; then
-        echo "Down"
         wget -b --quiet $RESULT
       else
         curl -L -O -J $RESULT &
